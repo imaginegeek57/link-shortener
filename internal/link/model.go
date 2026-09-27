@@ -13,10 +13,11 @@ type Link struct {
 }
 
 func NewLink(url string) *Link {
-	return &Link{
-		Url:  url,
-		Hash: RandStringRunes(7),
+	link := &Link{
+		Url: url,
 	}
+	link.GenerateHash()
+	return link
 
 }
 
@@ -28,5 +29,10 @@ func RandStringRunes(n int) string {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
 	return string(b)
+
+}
+
+func (link *Link) GenerateHash() {
+	link.Hash = RandStringRunes(6)
 
 }
