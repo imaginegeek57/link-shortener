@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"shortly/configs"
-	"shortly/pkg/di"
+	"shortly/pkg/event"
 	"shortly/pkg/middleware"
 	"shortly/pkg/req"
 	"shortly/pkg/res"
@@ -15,19 +15,19 @@ import (
 
 type LinkHandlerDeps struct {
 	LinkRepository *LinkRepository
-	StatRepository di.IStatRepository
 	Config         *configs.Config
+	EventBus       *event.EventBus
 }
 
 type LinkHandler struct {
 	LinkRepository *LinkRepository
-	StatRepository di.IStatRepository
+	EventBus       *event.EventBus
 }
 
 func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 	handler := &LinkHandler{
 		LinkRepository: deps.LinkRepository,
-		StatRepository: deps.StatRepository,
+		EventBus:       deps.EventBus,
 	}
 	router.HandleFunc("POST /api/link/", handler.Create())
 	router.Handle("PATCH /api/link/{id}", middleware.IsAuthed(handler.Update(), *deps.Config))
@@ -119,7 +119,10 @@ func (handler *LinkHandler) GoTo() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		handler.StatRepository.AddClick(link.ID)
+		go handler.EventBus.Publish(event.Event{
+			Type: event.EventLinkViseted,
+			Data: link.ID,
+		})
 		http.Redirect(w, r, link.Url, http.StatusTemporaryRedirect)
 	}
 }
