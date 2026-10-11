@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"shortly/internal/link"
+	"shortly/internal/stat"
 	"shortly/internal/user"
 
 	"github.com/joho/godotenv"
@@ -15,10 +16,12 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	db, err := gorm.Open(postgres.Open(os.Getenv("DSN")), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(os.Getenv("DSN")), &gorm.Config{
+		// DisableForeignKeyConstraintWhenMigrating: true,
+	})
 	if err != nil {
 		panic(err)
 	}
-	db.AutoMigrate(&link.Link{}, &user.User{})
+	db.AutoMigrate(&link.Link{}, &user.User{}, stat.Stat{})
 
 }
