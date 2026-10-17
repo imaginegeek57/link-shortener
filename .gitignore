@@ -16,5 +16,6 @@
 
 # переменные окружения
 .env
+/cmd/.env
 
 /postgres-data
